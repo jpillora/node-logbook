@@ -1,0 +1,29 @@
+{
+  "name": "logbook",
+  "version": "0.1.0",
+  "description": "Log all data that passes through process.stdout and process.stderr",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/jpillora/node-logbook"
+  },
+  "keywords": [
+    "log",
+    "process",
+    "stdout",
+    "stderr",
+    "simple",
+    "loggly"
+  ],
+  "author": "Jaime Pillora <dev@jpillora.com>",
+  "license": "MIT",
+  "readmeFilename": "README.md",
+  "gitHead": "c5ac10ab145d4c6d02fac6483a5ac4a8bed4b12c",
+  "dependencies": {
+    "colors": "~0.6.0-1",
+    "loggly": "~0.3.11"
+  }
+}
