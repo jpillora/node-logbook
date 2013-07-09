@@ -1,11 +1,13 @@
 
+require('colors');
 var fs = require('fs');
 var util = require('util');
 var stream = require('stream');
 var path = require('path');
-var fork = require('child_process').fork;
-
-require('colors');
+var https = require('https');
+https.globalAgent.maxSockets = 2000;
+var loggly = require('loggly');
+var logglyClient = null;
 
 var $out = process.stdout.write,
     $err = process.stderr.write;
@@ -24,9 +26,10 @@ var config = {
   },
   file: {
     enabled: false,
-    output: './logbook.txt',
-    timestamps: false,
-    typestamps: false
+    timestamps: true,
+    typestamps: false,
+    log: "./log.txt",
+    err: "./err.txt"
   }
 };
 
@@ -50,7 +53,7 @@ process.stderr.write = makeWriteFn('err');
 //public methods
 exports.configure = function(object) {
 
-  //store old client  
+  //store old client
   var old = config.loggly.subdomain;
 
   //config each handler
@@ -60,7 +63,10 @@ exports.configure = function(object) {
 
   //new client
   if(config.loggly.subdomain !== old)
-    sendToLoggly({ subdomain: config.loggly.subdomain });
+    logglyClient = loggly.createClient({
+      subdomain: config.loggly.subdomain,
+      json: true
+    });
 
   return exports;
 };
@@ -94,39 +100,22 @@ var coreHandlers = {
       $err.call(process.stderr, buffer);
   },
   loggly: function(type, buffer) {
-    sendToLoggly({
-      token: config.loggly.inputToken,
-      obj: {
-        type: type,
-        msg: buffer.toString()
-      }
+    logglyClient.log(config.loggly.inputToken, {
+      type: type,
+      msg: buffer.toString()
     });
   },
   file: function(type, buffer) {
-    fs.appendFile(config.file.output, buffer);
+    var strs = [];
+    if(config.file.typestamps)
+      strs.push(type);
+    if(config.file.timestamps)
+      strs.push(time());
+    strs.push(buffer.toString());
+    buffer = new Buffer(strs.join(' '));
+    fs.appendFile(config.file[type], buffer);
   }
 };
-
-//send to loggly process - with message queuing
-var loggly = fork(path.join(__dirname,'loggly-client.js'));
-loggly.ready = false;
-loggly.queue = [];
-loggly.on('message', function() {
-  loggly.ready = true;
-  loggly.queue.forEach(sendToLoggly);
-  loggly.queue = [];
-});
-
-var sendToLoggly = function(obj) {
-  if(!loggly.ready) {
-    loggly.queue.push(obj);
-    loggly.ready = true;
-    return;
-  }
-  loggly.send(obj);
-};
-
-// setTimeout(loggly.kill.bind(loggly,'SIGHUP'), 2000);
 
 //helpers
 var pad = function(n){
@@ -135,13 +124,18 @@ var pad = function(n){
 
 var time = function() {
   var d = new Date();
-  return util.format("[%s-%s-%s.%s:%s:%s]",
+  return util.format("[%s-%s-%s %s:%s:%s]",
                      d.getFullYear(),      pad(d.getMonth()+1), pad(d.getDate()),
                      pad(d.getHours()),    pad(d.getMinutes()), pad(d.getSeconds()));
 };
 
 var toArr = function(argsObj) {
   return Array.prototype.slice.call(argsObj);
+};
+
+//cant use console.log - write directly to stderr
+var debug = function(obj) {
+  $err.call(process.stderr, new Buffer("logbook >> " + JSON.stringify(obj, null, 2) + "\n"));
 };
 
 

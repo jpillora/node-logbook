@@ -38,7 +38,7 @@ require('logbook').configure({
 By default `logbook` has no effect, it will simply pass
 all output back the associated pipe (stdout or stderr).
 
-``` json
+``` javascript
 {
   console: {
     enabled: true,
@@ -52,21 +52,30 @@ all output back the associated pipe (stdout or stderr).
   },
   file: {
     enabled: false,
-    output: './logbook.txt',
     timestamps: false,
-    typestamps: false
+    typestamps: false,
+    log: "./log.txt",
+    err: "./err.txt"
   }
 }
 ```
 
 ### Loggly
 
+Each log will be in the form
+
+``` javascript
+{
+  type: "log" OR "err"
+  msg: LOGSTRING
+}
+```
+This will be JSON encoded, so ***please only use HTTPS+JSON inputs!***
+
 #### `inputToken`
 
 The token provided by loggly which identifies the input (or data bucket)
 that you're logging to.
-
-***Please only use HTTPS+JSON inputs***
 
 #### `subdomain`
 
@@ -78,8 +87,8 @@ The loggly subdomain used to identify your account.
 require('logbook').configure({
   ...
 }).add(function(type, buffer) {
-  type === 'log' || type === 'error';   //true
-  buffer instanceof Buffer;             //true
+  type === 'log' || type === 'err';   //true
+  buffer instanceof Buffer;           //true
 });
 ```
 

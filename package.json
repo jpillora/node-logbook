@@ -1,6 +1,6 @@
 {
   "name": "logbook",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Log all data that passes through process.stdout and process.stderr",
   "main": "index.js",
   "scripts": {
@@ -12,6 +12,10 @@
   },
   "keywords": [
     "log",
+    "logging",
+    "console",
+    "file",
+    "remote",
     "process",
     "stdout",
     "stderr",
