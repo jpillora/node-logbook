@@ -100,10 +100,14 @@ var coreHandlers = {
       $err.call(process.stderr, buffer);
   },
   loggly: function(type, buffer) {
+
+    if(!config.loggly.inputToken)
+      return error("Loggly 'inputToken' not set");
+
     logglyClient.log(config.loggly.inputToken, {
       type: type,
       msg: buffer.toString()
-    });
+    }, showLogglyError);
   },
   file: function(type, buffer) {
     var strs = [];
@@ -115,6 +119,10 @@ var coreHandlers = {
     buffer = new Buffer(strs.join(' '));
     fs.appendFile(config.file[type], buffer);
   }
+};
+
+var showLogglyError = function(err) {
+  if(err) return error(err);
 };
 
 //helpers
@@ -135,7 +143,9 @@ var toArr = function(argsObj) {
 
 //cant use console.log - write directly to stderr
 var debug = function(obj) {
-  $err.call(process.stderr, new Buffer("logbook >> " + JSON.stringify(obj, null, 2) + "\n"));
+  $err.call(process.stderr, new Buffer("logbook DEBUG >> " + JSON.stringify(obj, null, 2) + "\n"));
 };
-
-
+//cant use console.log - write directly to stderr
+var error = function(str) {
+  $err.call(process.stderr, new Buffer(("logbook ERROR >> "+str+"\n").red));
+};
