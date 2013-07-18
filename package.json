@@ -28,6 +28,7 @@
   "gitHead": "c5ac10ab145d4c6d02fac6483a5ac4a8bed4b12c",
   "dependencies": {
     "colors": "~0.6.0-1",
-    "loggly": "~0.3.11"
+    "loggly": "~0.3.11",
+    "simple-xmpp": "~0.1.12"
   }
 }

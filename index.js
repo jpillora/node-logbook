@@ -6,8 +6,11 @@ var stream = require('stream');
 var path = require('path');
 var https = require('https');
 https.globalAgent.maxSockets = 2000;
-var loggly = require('loggly');
+var loggly = null;
 var logglyClient = null;
+
+var xmpp = require('./xmpp');
+var os = require("os");
 
 var $out = process.stdout.write,
     $err = process.stderr.write;
@@ -30,6 +33,17 @@ var config = {
     typestamps: false,
     log: "./log.txt",
     err: "./err.txt"
+  },
+  xmpp: {
+    enabled: false,
+    jid: null,
+    password: null,
+    host: 'talk.google.com',
+    port: 5222,
+    autoAccept: false,
+    to: "*",
+    log: false,
+    err: true
   }
 };
 
@@ -53,20 +67,18 @@ process.stderr.write = makeWriteFn('err');
 //public methods
 exports.configure = function(object) {
 
-  //store old client
-  var old = config.loggly.subdomain;
-
   //config each handler
   for(var handlerName in coreHandlers)
-    for(var key in object[handlerName])
-      config[handlerName][key] = object[handlerName][key];
+    for(var prop in object[handlerName])
+      config[handlerName][prop] = object[handlerName][prop];
 
-  //new client
-  if(config.loggly.subdomain !== old)
-    logglyClient = loggly.createClient({
-      subdomain: config.loggly.subdomain,
-      json: true
-    });
+  //new loggly client
+  if(object.loggly && object.loggly.subdomain)
+    initLoggly();
+
+  //new xmpp connection
+  if(object.xmpp && object.xmpp.jid && object.xmpp.password)
+    initXMPP();
 
   return exports;
 };
@@ -101,6 +113,8 @@ var coreHandlers = {
   },
   loggly: function(type, buffer) {
 
+    if(!logglyClient)
+      return error("Loggly not setup");
     if(!config.loggly.inputToken)
       return error("Loggly 'inputToken' not set");
 
@@ -118,12 +132,34 @@ var coreHandlers = {
     strs.push(buffer.toString());
     buffer = new Buffer(strs.join(' '));
     fs.appendFile(config.file[type], buffer);
+  },
+  xmpp: function(type, buffer) {
+    if(!xmpp.connected)
+      return error("XMPP not setup");
+    xmpp.send(os.hostname()+": "+type+": "+buffer.toString());
   }
 };
 
 var showLogglyError = function(err) {
   if(err) return error(err);
 };
+
+var initLoggly = function() {
+  if(!loggly)
+    loggly = require('loggly');
+
+  logglyClient = loggly.createClient({
+    subdomain: config.loggly.subdomain,
+    json: true
+  });
+};
+
+var initXMPP = function() {
+  xmpp.connect(
+    config.xmpp
+  );
+};
+
 
 //helpers
 var pad = function(n){
@@ -149,3 +185,11 @@ var debug = function(obj) {
 var error = function(str) {
   $err.call(process.stderr, new Buffer(("logbook ERROR >> "+str+"\n").red));
 };
+
+xmpp.on('debug', function() {
+  debug([].slice.call(arguments));
+});
+
+xmpp.on('error', function(err) {
+  error('XMPP Error: ' + err);
+});
