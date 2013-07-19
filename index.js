@@ -10,7 +10,6 @@ var loggly = null;
 var logglyClient = null;
 
 var xmpp = require('./xmpp');
-var os = require("os");
 
 var $out = process.stdout.write,
     $err = process.stderr.write;
@@ -40,9 +39,9 @@ var config = {
     password: null,
     host: 'talk.google.com',
     port: 5222,
-    autoAccept: false,
     to: "*",
-    log: false,
+    delay: 100,
+    log: true,
     err: true
   }
 };
@@ -136,7 +135,7 @@ var coreHandlers = {
   xmpp: function(type, buffer) {
     if(!xmpp.connected)
       return error("XMPP not setup");
-    xmpp.send(os.hostname()+": "+type+": "+buffer.toString());
+    xmpp.send(type, buffer.toString());
   }
 };
 
@@ -187,7 +186,7 @@ var error = function(str) {
 };
 
 xmpp.on('debug', function() {
-  debug([].slice.call(arguments));
+  debug(util.inspect([].slice.call(arguments)));
 });
 
 xmpp.on('error', function(err) {

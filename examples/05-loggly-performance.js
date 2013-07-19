@@ -9,3 +9,5 @@ require('../').configure({
 
 for(var i = 1; i <= 1000; ++i)
   console.log("hello loggly, this is message #"+i+"!");
+
+//recieved 997/1000

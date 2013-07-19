@@ -1,17 +1,22 @@
 Logbook
 ============
 
-Yet another logger for Node. Nothing fancy - logs all data that passes through `process.stdout` and `process.stderr` (includes `console.log` and `console.error`). If you don't wish to log something, delete the code. Your program should only be logging things you wish to see.
+Yet another logger for Node.
+
+Nothing fancy - logs all data that passes through `process.stdout` and `process.stderr` (`console.log()` and `console.error()`).
 
 ### Goals
 
 * **Simple**
-* Use process.stdout and process.stderr the two log channels
-* Log to:
+* Intercepts `process.stdout` and `process.stderr` producing two log levels:
+  * `LOG`
+  * `ERR`
+* Optionally log to:
   * Console
   * File
   * Loggly
-  * ???
+  * XMPP (Google Talk)
+  * [Make your own](https://github.com/jpillora/node-logbook#custom-log-handlers)
 
 ### Usage
 
@@ -19,19 +24,78 @@ Yet another logger for Node. Nothing fancy - logs all data that passes through `
 npm install logbook
 ```
 
+### Log to File
+
+Disable console and log `stdout` `stderr` to `log.txt` and `err.txt` with a time stamp:
+
+``` javascript
+require('logbook').configure({
+  console: {
+    enabled: false
+  },
+  file: {
+    enabled: true
+  }
+});
+```
+
+### Log to Loggly
+
+Disable console and send `stdout` `stderr` to [Loggly](https://app.loggly.com/pricing/) (200MB/day free):
+
 ``` javascript
 require('logbook').configure({
   console: {
     enabled: false
   },
   loggly: {
-    client: {
-    }
+    enabled: false,
+    inputToken: "abcd1234-1234-40bd-bddf-5ff562eb1cda",
+    subdomain: "my-subdomain"
   }
 });
 ```
 
-*See examples directory*
+### Log to XMPP a.k.a "Jabber" (Google Talk)
+
+Disable console and send `stdout` `stderr` to everyone in your contact list:
+
+``` javascript
+require('logbook').configure({
+  console: {
+    enabled: false
+  },
+  xmpp: {
+    enabled: true,
+    jid: '...@gmail.com',
+    password: '...'
+  }
+});
+```
+
+### Log to all the thingsss
+
+``` javascript
+require('logbook').configure({
+  console: {
+    enabled: true
+  },
+  file: {
+    enabled: true,
+    ...
+  },
+  loggly: {
+    enabled: true,
+    ...
+  },
+  xmpp: {
+    enabled: true,
+    ...
+  }
+});
+```
+
+*See [examples](https://github.com/jpillora/node-logbook/tree/master/examples) directory for more*
 
 ### Default Configuration
 
@@ -52,36 +116,58 @@ all output back the associated pipe (stdout or stderr).
   },
   file: {
     enabled: false,
-    timestamps: false,
+    timestamps: true,
     typestamps: false,
     log: "./log.txt",
     err: "./err.txt"
+  },
+  xmpp: {
+    enabled: false,
+    jid: null,
+    password: null,
+    host: 'talk.google.com',
+    port: 5222,
+    to: "*",
+    delay: 100,
+    log: false,
+    err: true
   }
 }
 ```
 
-### Loggly
+
+### **API**
+
+#### File
+
+* Writes will also append to each file
+
+#### Loggly
 
 Each log will be in the form
 
 ``` javascript
 {
-  type: "log" OR "err"
-  msg: LOGSTRING
+  type: "log|err"
+  msg: "..."
 }
 ```
+
 This will be JSON encoded, so ***please only use HTTPS+JSON inputs!***
 
-#### `inputToken`
+##### `inputToken`
 
 The token provided by loggly which identifies the input (or data bucket)
 that you're logging to.
 
-#### `subdomain`
+##### `subdomain`
 
 The loggly subdomain used to identify your account.
 
+
 ### Custom Log Handlers
+
+You can handle the result
 
 ``` javascript
 require('logbook').configure({
@@ -91,6 +177,31 @@ require('logbook').configure({
   buffer instanceof Buffer;           //true
 });
 ```
+
+#### XMPP
+
+##### `to`
+
+An array of `jid` Jabber IDs (Google Accounts in the case of Google Talk).
+By default it's the string "*", which means everyone in the given
+accounts contact list. Useful if you create
+a logbook Jabber account, then you can "subscribe" to it at will.
+
+##### `delay`
+
+This is the delay (in milliseconds) before all acculated messages are sent out.
+This helps trying to send thousands of messages concurrently resulting from a
+long synchronous loop.  
+
+### Conceptual Overview
+
+This module simply assigns a new functions to `process.stdout|err.write`. Captures
+all calls to it, calls the original versions when `console.enabled true`.
+
+### Todo
+
+- [ ] Make a CLI looking for a `logbook.json` file
+- [ ] Add some tests
 
 ## MIT License
 
