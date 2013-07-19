@@ -1,6 +1,6 @@
 {
   "name": "logbook",
-  "version": "0.3.1",
+  "version": "0.3.2",
   "description": "Log all data passing through process.stdout and process.stderr",
   "main": "index.js",
   "scripts": {

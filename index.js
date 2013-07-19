@@ -41,7 +41,7 @@ var config = {
     port: 5222,
     to: "*",
     delay: 100,
-    log: true,
+    log: false,
     err: true
   }
 };

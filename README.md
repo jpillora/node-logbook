@@ -58,7 +58,7 @@ require('logbook').configure({
 
 ### Log to XMPP a.k.a "Jabber" (Google Talk)
 
-Disable console and send `stdout` `stderr` to everyone in your contact list:
+Disable console and send `stderr` to everyone in your contact list:
 
 ``` javascript
 require('logbook').configure({
@@ -68,10 +68,13 @@ require('logbook').configure({
   xmpp: {
     enabled: true,
     jid: '...@gmail.com',
-    password: '...'
+    password: '...',
   }
 });
 ```
+
+To prevent too much spam, only `stderr` is logged by default.
+This can changed with `xmpp.log: true`. 
 
 ### Log to all the thingsss
 
@@ -99,8 +102,8 @@ require('logbook').configure({
 
 ### Default Configuration
 
-By default `logbook` has no effect, it will simply pass
-all output back the associated pipe (stdout or stderr).
+With this default configuration, `logbook` will have no effect,
+it will simply pass all output back the associated pipe (stdout or stderr).
 
 ``` javascript
 {
@@ -179,6 +182,14 @@ that you're logging to.
 The loggly subdomain used to identify your account.
 
 #### XMPP
+
+##### `log`
+
+Boolean whether to send `stdout`, default `false`
+
+##### `err`
+
+Boolean whether to send `stderr`, default `true`
 
 ##### `to`
 

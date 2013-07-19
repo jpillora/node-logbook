@@ -3,7 +3,7 @@ require('../').configure({
   xmpp: {
     enabled: true,
     jid: '...@gmail.com',
-    password: '...'
+    password: '...',
 
     // default is gtalk
     // host: 'talk.google.com',
@@ -12,9 +12,9 @@ require('../').configure({
     // default is "*" (whitelist of 'jid's)
     // to: "*",
 
-    // default sends both log and error
-    // log: true,
-    // err: true
+    // default sends -only- error
+    log: true,
+    err: true
   }
 });
 
