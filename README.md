@@ -5,7 +5,7 @@ Yet another logger for Node.
 
 Nothing fancy - logs all data that passes through `process.stdout` and `process.stderr` (`console.log()` and `console.error()`).
 
-### Goals
+### Features
 
 * **Simple**
 * Intercepts `process.stdout` and `process.stderr` producing two log levels:
@@ -135,8 +135,22 @@ all output back the associated pipe (stdout or stderr).
 }
 ```
 
+### Custom Log Handlers
+
+Add custom log handlers with `add()`
+
+``` javascript
+require('logbook').configure({
+  ...
+}).add(function(type, buffer) {
+  type === 'log' || type === 'err';   //true
+  buffer instanceof Buffer;           //true
+});
+```
 
 ### **API**
+
+Configure loggers with `configure()`
 
 #### File
 
@@ -164,20 +178,6 @@ that you're logging to.
 
 The loggly subdomain used to identify your account.
 
-
-### Custom Log Handlers
-
-You can handle the result
-
-``` javascript
-require('logbook').configure({
-  ...
-}).add(function(type, buffer) {
-  type === 'log' || type === 'err';   //true
-  buffer instanceof Buffer;           //true
-});
-```
-
 #### XMPP
 
 ##### `to`
@@ -200,8 +200,10 @@ all calls to it, calls the original versions when `console.enabled true`.
 
 ### Todo
 
-- [ ] Make a CLI looking for a `logbook.json` file
-- [ ] Add some tests
+* Make a CLI looking for a `logbook.json` file
+  * Wraps `logbook <script.js>` logs all `stdout` `stderr`
+  * Auto restarts, logging restart events
+* Add some tests
 
 ## MIT License
 
