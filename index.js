@@ -40,6 +40,7 @@ var config = {
     host: 'talk.google.com',
     port: 5222,
     to: "*",
+    prefix: null,
     delay: 100,
     log: false,
     err: true

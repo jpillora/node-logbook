@@ -32,6 +32,21 @@ var readyNow = function() {
   }, 2000);
 };
 
+var report = function(sender) {
+
+  var osdata = {};
+  for(var fnName in os)
+    if(fnName !== 'getNetworkInterfaces' && typeof os[fnName] === 'function')
+      osdata[fnName] = os[fnName]();
+
+  client.send(sender, JSON.stringify({
+    time: new Date().toString(),
+    stats: stats,
+    os: osdata
+  },null, 2));
+
+};
+
 exports.connect = function(s) {
 
   settings = s || {};
@@ -49,7 +64,7 @@ exports.connect = function(s) {
   // });
 
   client.on('chat', function(from, message) {
-    client.send(from, JSON.stringify(stats,null, 2));
+    if(/report/.test(message)) report(from);
   });
 
   client.on('error', function(err) {
@@ -95,8 +110,8 @@ var flush = function() {
   stats.flushes++;
   stats.last = new Date().toString();
 
-  // var msg = "logbook has #"+queue.length+" new messages from host: '" +os.hostname()+"'\n";
-  var msg = "";
+  var msg = (settings.prefix ? settings.prefix+': ' : '') +
+            (queue.length >1 ? '#'+queue.length+' messages: ':'');
   msg += queue.map(function(arr) {
     return arr[0].toUpperCase() + ": " + arr[1];
   }).join('\n');

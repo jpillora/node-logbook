@@ -131,6 +131,7 @@ it will simply pass all output back the associated pipe (stdout or stderr).
     host: 'talk.google.com',
     port: 5222,
     to: "*",
+    prefix: null,
     delay: 100,
     log: false,
     err: true
@@ -203,6 +204,10 @@ a logbook Jabber account, then you can "subscribe" to it at will.
 This is the delay (in milliseconds) before all acculated messages are sent out.
 This helps trying to send thousands of messages concurrently resulting from a
 long synchronous loop.  
+
+##### `prefix`
+
+This string will be prefixed to every message
 
 ### Conceptual Overview
 
