@@ -28,7 +28,7 @@ var readyNow = function() {
   ready = true;
   setTimeout(function() {
     client.setPresence('online', 'Reporting for Duty');
-    exports.send('logbook','message delay set to: ' + settings.delay + 'ms');
+    exports.send('logbook','ONLINE! (delay: ' + settings.delay + 'ms)');
   }, 2000);
 };
 

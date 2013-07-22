@@ -67,17 +67,17 @@ process.stderr.write = makeWriteFn('err');
 exports.configure = function(object) {
 
   //config each handler
-  for(var handlerName in coreHandlers)
-    for(var prop in object[handlerName])
-      config[handlerName][prop] = object[handlerName][prop];
+  for(var name in coreHandlers) {
+    //skip
+    if(!object[name])
+      continue;
 
-  //new loggly client
-  if(object.loggly && object.loggly.subdomain)
-    initLoggly();
+    for(var prop in object[name])
+      config[name][prop] = object[name][prop];
 
-  //new xmpp connection
-  if(object.xmpp && object.xmpp.jid && object.xmpp.password)
-    initXMPP();
+    if(object[name].enabled === true && coreInit[name])
+      coreInit[name]();
+  }
 
   return exports;
 };
@@ -100,7 +100,7 @@ var coreHandlers = {
   console: function(type, buffer) {
     var strs = [];
     if(config.console.typestamps)
-      strs.push(type === 'error' ? type.red : type.cyan);
+      strs.push(type === 'err' ? type.red : type.cyan);
     if(config.console.timestamps)
       strs.push(time().grey);
     strs.push(buffer.toString());
@@ -119,8 +119,10 @@ var coreHandlers = {
 
     logglyClient.log(config.loggly.inputToken, {
       type: type,
-      msg: buffer.toString()
-    }, showLogglyError);
+      msg: stripColors(buffer.toString())
+    }, function(err) {
+      if(err) return error(err);
+    });
   },
   file: function(type, buffer) {
     var strs = [];
@@ -128,7 +130,7 @@ var coreHandlers = {
       strs.push(type);
     if(config.file.timestamps)
       strs.push(time());
-    strs.push(buffer.toString());
+    strs.push(stripColors(buffer.toString()));
     buffer = new Buffer(strs.join(' '));
     fs.appendFile(config.file[type], buffer);
   },
@@ -139,30 +141,41 @@ var coreHandlers = {
   }
 };
 
-var showLogglyError = function(err) {
-  if(err) return error(err);
+var coreInit = {
+  console: function() {
+    info('console enabled');
+  },
+  file: function() {
+    info('file enabled (log: '+config.file.log+', err: '+config.file.err + ')');
+  },
+  loggly: function() {
+    if(!config.loggly.subdomain)
+      return error('loggly missing subdomain');
+    info('loggly enabled (subdomain: ' + config.loggly.subdomain + ')');
+    if(!loggly)
+      loggly = require('loggly');
+    logglyClient = loggly.createClient({
+      subdomain: config.loggly.subdomain,
+      json: true
+    });
+  },
+  xmpp: function() {
+    if(!config.xmpp.jid || !config.xmpp.password)
+      return error('xmpp missing jid or password');
+    info('xmpp enabled (jid: ' + config.xmpp.jid + ')');
+    xmpp.connect(
+      config.xmpp
+    );
+  }
 };
-
-var initLoggly = function() {
-  if(!loggly)
-    loggly = require('loggly');
-
-  logglyClient = loggly.createClient({
-    subdomain: config.loggly.subdomain,
-    json: true
-  });
-};
-
-var initXMPP = function() {
-  xmpp.connect(
-    config.xmpp
-  );
-};
-
 
 //helpers
 var pad = function(n){
   return n<10 ? '0'+n : n;
+};
+
+var stripColors = function(str) {
+  return str.replace(/\x1B\[\d+m/g, '');
 };
 
 var time = function() {
@@ -183,6 +196,10 @@ var debug = function(obj) {
 //cant use console.log - write directly to stderr
 var error = function(str) {
   $err.call(process.stderr, new Buffer(("logbook ERROR >> "+str+"\n").red));
+};
+
+var info = function(str) {
+  $out.call(process.stdout, new Buffer(("logbook >> "+str+"\n").grey));
 };
 
 xmpp.on('debug', function() {
