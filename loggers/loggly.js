@@ -56,18 +56,15 @@ exports.send = function(type, buffer) {
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(msg)
   }, function (err, res, body) {
-    if(err) {
+    if(err)
       printer.err('loggly http error: ' + err + "\n");
-      return;
-    } else if (res.statusCode !== 200) {
+    else if (res.statusCode !== 200)
       printer.err('loggly error: ' + res.statusCode + ': ' + body + "\n");
-      // printer.log(util.inspect(res, {colors:true, depth:0})+"\n");
-      return;
-    }
-    exports.status.confirmed++;
+    else
+      exports.status.confirmed++;
     // printer.log('confirmed:'+exports.status.confirmed+"("+id+")\n");
+    // printer.log(util.inspect(res, {colors:true, depth:0})+"\n");
   });
-
 };
 
 

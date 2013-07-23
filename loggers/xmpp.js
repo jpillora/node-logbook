@@ -158,14 +158,14 @@ var flush = function() {
   queuing = false;
 };
 
-exports.send = function(type, msg) {
+exports.send = function(type, buffer) {
 
   if(!queuing && ready) {
     setTimeout(flush, config.delay);
     queuing = true;
   }
 
-  queue.push([type,msg]);
+  queue.push([type, printer.stripColors(buffer)]);
 };
 
 
