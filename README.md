@@ -185,6 +185,12 @@ This will be JSON encoded, so ***please only use HTTPS+JSON inputs!***
 The token provided by loggly which identifies the input (or data bucket)
 that you're logging to.
 
+##### `maxSockets`
+
+The number of http agents to use when connecting to Loggly. Can be thought of as amount of 
+concurrency, so beware of hitting Loggly too much as you may be seen as DOS attack. Hence,
+default is only 10.
+
 #### XMPP
 
 ##### `log`
