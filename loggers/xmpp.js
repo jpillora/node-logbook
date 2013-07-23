@@ -1,8 +1,10 @@
 
 //hack to suppress warning message
+var printer = require("../printer");
+var _ = require("lodash");
 var fs = require("fs");
 var path = require("path");
-fs.writeFileSync(path.join(__dirname,'node_modules','node-stringprep.js'),
+fs.writeFileSync(path.join(__dirname,'..','node_modules','node-stringprep.js'),
  'var I = function(a) { return a; };'+
  'exports.StringPrep = function(){ this.prepare = I; };'+
  'exports.toUnicode = I;');
@@ -10,47 +12,43 @@ fs.writeFileSync(path.join(__dirname,'node_modules','node-stringprep.js'),
 var SimpleXMPP = require('simple-xmpp').SimpleXMPP;
 var buddies = null;
 var client = null;
-var settings = null;
+var config = null;
 var queue = null;
 var queuing = false;
 var ready = false;
 var os = require("os");
-
-var emitter = new (require('events').EventEmitter)();
-var emit = emitter.emit.bind(emitter);
-exports.on = emitter.on.bind(emitter);
-
-exports.connected = false;
-
+var hostname = os.hostname();
 var stats = { flushes: 0, last: null };
+var config = {};
 
-var readyNow = function() {
-  ready = true;
-  setTimeout(function() {
-    client.setPresence('online', 'Reporting for Duty');
-    exports.send('logbook','ONLINE! (delay: ' + settings.delay + 'ms)');
-  }, 2000);
+exports.defaults = {
+  enabled: false,
+  jid: null,
+  password: null,
+  host: 'talk.google.com',
+  port: 5222,
+  to: "*",
+  prefix: null,
+  delay: 100,
+  log: false,
+  err: true
 };
 
-var report = function(sender) {
+_.defaults(config, exports.defaults);
 
-  var osdata = {};
-  for(var fnName in os)
-    if(fnName !== 'getNetworkInterfaces' && typeof os[fnName] === 'function')
-      osdata[fnName] = os[fnName]();
-
-  client.send(sender, JSON.stringify({
-    time: new Date().toString(),
-    stats: stats,
-    os: osdata
-  },null, 2));
-
+exports.status = {
+  enabled: false,
+  log: false,
+  err: false
 };
 
-exports.connect = function(s) {
+exports.configure = function(c) {
+  _.extend(config, c);
 
-  settings = s || {};
-  settings.delay = settings.delay|| 10000;
+  if(!config.jid || !config.password)
+    return printer.fatal('XMPP missing jid or password');
+
+  printer.info('xmpp enabled (jid: ' + config.jid + ')');
 
   buddies = {};
   queue = [];
@@ -75,8 +73,8 @@ exports.connect = function(s) {
 
     if(ready === false) readyNow();
 
-    if(settings.to instanceof Array)
-      if(settings.to.indexOf(jid) === -1)
+    if(config.to instanceof Array)
+      if(config.to.indexOf(jid) === -1)
         return;
 
     if(state === 'offline')
@@ -90,19 +88,42 @@ exports.connect = function(s) {
     client.send(jid, data.clientName + ": " + data.features);
   });
 
-  if(settings.autoAccept === true)
+  if(config.autoAccept === true)
     client.on('subscribe', function(from) {
       client.acceptSubscription(from);
     });
 
   client.connect({
-    jid:      settings.jid,
-    password: settings.password,
-    host:     settings.host || 'talk.google.com',
-    port:     settings.port || 5222
+    jid:      config.jid,
+    password: config.password,
+    host:     config.host || 'talk.google.com',
+    port:     config.port || 5222
   });
 
-  exports.connected = true;
+  _.extend(exports.status, _.pick(config, 'enabled', 'log', 'err'));
+};
+
+var readyNow = function() {
+  ready = true;
+  client.setPresence('online', 'Online: '+new Date());
+  setTimeout(function() {
+    emit('online');
+    if(queue.length) flush();
+  }, 2000);
+};
+
+var report = function(sender) {
+  var osdata = {};
+  for(var fnName in os)
+    if(fnName !== 'getNetworkInterfaces' &&
+       typeof os[fnName] === 'function')
+      osdata[fnName] = os[fnName]();
+
+  client.send(sender, JSON.stringify({
+    time: new Date().toString(),
+    stats: stats,
+    os: osdata
+  },null, 2));
 };
 
 var flush = function() {
@@ -110,11 +131,14 @@ var flush = function() {
   stats.flushes++;
   stats.last = new Date().toString();
 
-  var msg = (settings.prefix ? settings.prefix+': ' : '') +
+  var msg = (config.machineName ? hostname+': ' : '') +
+            (config.prefix ? config.prefix+': ' : '') +
             (queue.length >1 ? '#'+queue.length+' messages: ':'');
+
   msg += queue.map(function(arr) {
     return arr[0].toUpperCase() + ": " + arr[1];
   }).join('\n');
+
   queue = [];
 
   for(var buddy in buddies)
@@ -125,15 +149,8 @@ var flush = function() {
 
 exports.send = function(type, msg) {
 
-  if(!settings)
-    emit('error', 'settings missing');
-
-  if((type === 'err' && !settings.err) ||
-     (type === 'log' && !settings.log))
-    return;
-
   if(!queuing && ready) {
-    setTimeout(flush, settings.delay);
+    setTimeout(flush, config.delay);
     queuing = true;
   }
 

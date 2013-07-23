@@ -7,4 +7,5 @@ require('../').configure({
 });
 
 //prettyyyyy
-console.log('foo!');
+console.error('uh oh...');
+console.log('hooray!');

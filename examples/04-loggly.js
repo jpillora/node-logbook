@@ -2,9 +2,10 @@
 require('../').configure({
   loggly: {
     enabled: true,
-    inputToken: "abcd1234-1234-40bd-bddf-5ff562eb1cda",
-    subdomain: "my-subdomain"
+      "inputToken": "b4c2378d-9727-40bd-bddf-5ff562eb1cda",
+      "subdomain": "think"
   }
 });
 
 console.log("hello loggly");
+console.error("hello loggly :O !!");

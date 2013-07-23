@@ -1,4 +1,4 @@
-//log to Twitter
+//log to Twitter (would be using an account set to private)
 // NOT IMPLEMENTED YET DUE TO 140 CHAR LIMIT
 
 // require('../').configure({
