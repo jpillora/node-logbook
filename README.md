@@ -8,6 +8,7 @@ Nothing fancy - logs all data that passes through `process.stdout` and `process.
 ### Features
 
 * **Simple**
+  * Keep using `console`
 * Intercepts `process.stdout` and `process.stderr` producing two log levels:
   * `LOG`
   * `ERR`
@@ -50,8 +51,7 @@ require('logbook').configure({
   },
   loggly: {
     enabled: false,
-    inputToken: "abcd1234-1234-40bd-bddf-5ff562eb1cda",
-    subdomain: "my-subdomain"
+    inputToken: "abcd1234-1234-40bd-bddf-5ff562eb1cda"
   }
 });
 ```
@@ -105,39 +105,46 @@ require('logbook').configure({
 With this default configuration, `logbook` will have no effect,
 it will simply pass all output back the associated pipe (stdout or stderr).
 
-``` javascript
+<runFile('./show-defaults')>
+```
 {
-  console: {
-    enabled: true,
-    timestamps: false,
-    typestamps: false
+  "console": {
+    "enabled": true,
+    "timestamps": false,
+    "typestamps": false,
+    "log": true,
+    "err": true
   },
-  loggly: {
-    enabled: false,
-    inputToken: null,
-    subdomain: null
+  "file": {
+    "enabled": false,
+    "timestamps": true,
+    "typestamps": false,
+    "log": "./log.txt",
+    "err": "./err.txt"
   },
-  file: {
-    enabled: false,
-    timestamps: true,
-    typestamps: false,
-    log: "./log.txt",
-    err: "./err.txt"
+  "loggly": {
+    "enabled": false,
+    "inputToken": null,
+    "maxSockets": 10,
+    "log": true,
+    "err": true
   },
-  xmpp: {
-    enabled: false,
-    jid: null,
-    password: null,
-    host: 'talk.google.com',
-    port: 5222,
-    to: "*",
-    prefix: null,
-    delay: 100,
-    log: false,
-    err: true
+  "xmpp": {
+    "enabled": false,
+    "jid": null,
+    "password": null,
+    "host": "talk.google.com",
+    "port": 5222,
+    "to": "*",
+    "prefix": null,
+    "delay": 100,
+    "log": false,
+    "err": true
   }
 }
+
 ```
+</end>
 
 ### Custom Log Handlers
 
@@ -178,10 +185,6 @@ This will be JSON encoded, so ***please only use HTTPS+JSON inputs!***
 The token provided by loggly which identifies the input (or data bucket)
 that you're logging to.
 
-##### `subdomain`
-
-The loggly subdomain used to identify your account.
-
 #### XMPP
 
 ##### `log`
@@ -217,13 +220,14 @@ all calls to it, calls the original versions when `console.enabled true`.
 ### Todo
 
 * Make a CLI looking for a `logbook.json` file
-  * Wraps `logbook <script.js>` logs all `stdout` `stderr`
+  * Runs like `logbook script.js` logs all `stdout` `stderr`
   * Auto restarts, logging restart events
 * Add some tests
 
-## MIT License
+<license()>
+#### MIT License
 
-Copyright © 2013 Jaime Pillora &lt;dev@jpillora.com&gt;
+Copyright &copy; 2013 Jaime Pillora &lt;dev@jpillora.com&gt;
 
 Permission is hereby granted, free of charge, to any person obtaining
 a copy of this software and associated documentation files (the
@@ -243,4 +247,5 @@ IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
 CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
 TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+</end>
 

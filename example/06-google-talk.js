@@ -12,9 +12,10 @@ require('../').configure({
     // default is "*" (whitelist of 'jid's)
     // to: "*",
 
-    // default sends -only- error
-    log: true,
-    err: true
+    // default is
+    // err: true,
+    // log: false 
+    log: true
   }
 });
 

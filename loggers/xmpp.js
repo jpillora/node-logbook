@@ -4,10 +4,16 @@ var printer = require("../printer");
 var _ = require("lodash");
 var fs = require("fs");
 var path = require("path");
-fs.writeFileSync(path.join(__dirname,'..','node_modules','node-stringprep.js'),
- 'var I = function(a) { return a; };'+
- 'exports.StringPrep = function(){ this.prepare = I; };'+
- 'exports.toUnicode = I;');
+
+//create a dummy module if its missing
+if(!fs.existsSync(path.join(__dirname,'..','node_modules','simple-xmpp',
+                                          'node_modules','node-xmpp',
+                                          'node_modules','node-stringprep'))) {
+  fs.writeFileSync(path.join(__dirname,'..','node_modules','node-stringprep.js'),
+   'var I = function(a) { return a; };'+
+   'exports.StringPrep = function(){ this.prepare = I; };'+
+   'exports.toUnicode = I;');
+}
 
 var SimpleXMPP = require('simple-xmpp').SimpleXMPP;
 var buddies = null;
@@ -45,6 +51,8 @@ exports.status = {
 exports.configure = function(c) {
   _.extend(config, c);
 
+  if(!config.enabled)
+    return;
   if(!config.jid || !config.password)
     return printer.fatal('XMPP missing jid or password');
 
@@ -62,11 +70,14 @@ exports.configure = function(c) {
   // });
 
   client.on('chat', function(from, message) {
-    if(/report/.test(message)) report(from);
+    if(/report/.test(message))
+      report(from);
+    else
+      client.send(from, message+'?');
   });
 
   client.on('error', function(err) {
-    emit('error', err.toString());
+    printer.fatal('XMPP Error: ' + err.toString());
   });
 
   client.on('buddy', function(jid, state, statusText) {
@@ -105,9 +116,9 @@ exports.configure = function(c) {
 
 var readyNow = function() {
   ready = true;
+  printer.info('xmpp online');
   client.setPresence('online', 'Online: '+new Date());
   setTimeout(function() {
-    emit('online');
     if(queue.length) flush();
   }, 2000);
 };
@@ -135,7 +146,7 @@ var flush = function() {
             (config.prefix ? config.prefix+': ' : '') +
             (queue.length >1 ? '#'+queue.length+' messages: ':'');
 
-  msg += queue.map(function(arr) {
+  msg += '\n'+queue.map(function(arr) {
     return arr[0].toUpperCase() + ": " + arr[1];
   }).join('\n');
 

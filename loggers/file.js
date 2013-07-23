@@ -25,6 +25,9 @@ exports.status = {
 exports.configure = function(c) {
   _.extend(config, c);
 
+  if(!config.enabled)
+    return;
+
   printer.info('file enabled (log: '+config.log+', err: '+config.err + ')');
 
   ['log','err'].forEach(function(type) {
@@ -43,7 +46,7 @@ exports.send = function(type, buffer) {
 
   var strs = [];
 
-  if(config.typestamps)
+  if(config.typestamps || config.log === config.err)
     strs.push(type);
 
   if(config.timestamps)
@@ -51,5 +54,8 @@ exports.send = function(type, buffer) {
 
   strs.push(printer.stripColors(buffer));
 
+
   files[type].write(strs.join(' '));
 };
+
+

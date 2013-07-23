@@ -59,3 +59,5 @@ exports.remove = function(fn) {
   handlers.splice(i,1);
   return exports;
 };
+
+exports.loggers = loggers;

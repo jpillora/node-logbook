@@ -9,15 +9,7 @@ require('../').configure({
   }
 });
 
-var i = 0;
-var t = setInterval(function () {
-  i++;
+for(var i = 0; i< 10; ++i) {
   console.log("hello log file", i);
   console.error("hello err file", i);
-}, 5);
-
-setTimeout(function() {
-  clearInterval(t);
-}, 1000);
-
-
+}

@@ -30,7 +30,6 @@ exports.stripColors = function(buffer) {
   return buffer.toString().replace(/\x1B\[\d+m/g, '');
 };
 
-
 var pad = function(n){
   return n<10 ? '0'+n : n;
 };
@@ -46,3 +45,5 @@ exports.time = function() {
                      pad(d.getHours()),    pad(d.getMinutes()), pad(d.getSeconds()),
                                                            xpad(d.getMilliseconds()));
 };
+
+
