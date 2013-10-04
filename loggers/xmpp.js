@@ -1,10 +1,10 @@
 
-//hack to suppress warning message
 var printer = require("../printer");
 var _ = require("lodash");
 var fs = require("fs");
 var path = require("path");
 
+//hack to suppress warning message
 //create a dummy module if its missing
 if(!fs.existsSync(path.join(__dirname,'..','node_modules','simple-xmpp',
                                           'node_modules','node-xmpp',
@@ -35,6 +35,7 @@ exports.defaults = {
   port: 5222,
   to: "*",
   prefix: null,
+  machineName: false,
   delay: 100,
   log: false,
   err: true
@@ -68,6 +69,9 @@ exports.configure = function(c) {
   // client.on('stanza', function(s) {
   //   emit('debug', s);
   // });
+  // client.on('buddyCapabilities', function(jid, data) {
+  //   client.send(jid, data.clientName + ": " + data.features);
+  // });
 
   client.on('chat', function(from, message) {
     if(/report/.test(message))
@@ -93,10 +97,6 @@ exports.configure = function(c) {
     else
       buddies[jid] = true;
 
-  });
-
-  client.on('buddyCapabilities', function(jid, data) {
-    client.send(jid, data.clientName + ": " + data.features);
   });
 
   if(config.autoAccept === true)

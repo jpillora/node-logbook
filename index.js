@@ -9,7 +9,8 @@ var loggers = {
   console: require('./loggers/console'),
   file:    require('./loggers/file'),
   loggly:  require('./loggers/loggly'),
-  xmpp:    require('./loggers/xmpp')
+  xmpp:    require('./loggers/xmpp'),
+  smtp:    require('./loggers/smtp')
 };
 
 // intercept console logs and errors and call all handlers

@@ -51,7 +51,8 @@ require('logbook').configure({
   },
   loggly: {
     enabled: false,
-    inputToken: "abcd1234-1234-40bd-bddf-5ff562eb1cda"
+    customerToken: "abcd1234-1234-40bd-bddf-5ff562eb1cda",
+    tags: ["my-app"]
   }
 });
 ```
@@ -102,8 +103,7 @@ require('logbook').configure({
 
 ### Default Configuration
 
-With this default configuration, `logbook` will have no effect,
-it will simply pass all output back the associated pipe (stdout or stderr).
+With this default configuration, `logbook` will have no effect, console will function as expected.
 
 <runFile('./show-defaults')>
 ```
@@ -124,8 +124,10 @@ it will simply pass all output back the associated pipe (stdout or stderr).
   },
   "loggly": {
     "enabled": false,
-    "inputToken": null,
+    "customerToken": null,
     "maxSockets": 10,
+    "tags": null,
+    "meta": null,
     "log": true,
     "err": true
   },
@@ -137,6 +139,7 @@ it will simply pass all output back the associated pipe (stdout or stderr).
     "port": 5222,
     "to": "*",
     "prefix": null,
+    "machineName": false,
     "delay": 100,
     "log": false,
     "err": true
@@ -163,43 +166,69 @@ require('logbook').configure({
 
 Configure loggers with `configure()`
 
+All loggers have two options:
+
+##### `log` (Boolean)
+
+Enable or disable log events
+
+##### `err` (Boolean)
+
+Enable or disable error events
+
+------
+
 #### File
 
-* Writes will also append to each file
+See defaults
+
+------
 
 #### Loggly
+
+See defaults
+
+**Important: Uses Loggly Gen2**
 
 Each log will be in the form
 
 ``` javascript
 {
-  type: "log|err"
-  msg: "..."
+  type: "log|err",
+  msg: "...",
+  date: unix-epoch,
+  tags: ["...", "...", "log|err"]
 }
 ```
 
-This will be JSON encoded, so ***please only use HTTPS+JSON inputs!***
+##### `customerToken` (String)
 
-##### `inputToken`
+The token provided by loggly which identifies your account.
 
-The token provided by loggly which identifies the input (or data bucket)
-that you're logging to.
+##### `tags` (Array)
 
-##### `maxSockets`
+The tags applied each log event. See [Tags](http://www.loggly.com/docs/tags/).
+
+The log type (`log`|`err`) will always be appended to the tags array.
+
+##### `meta` (Object)
+
+An object that will be merged into the object above. Will not override existing values.
+
+##### `maxSockets` (Number)
 
 The number of http agents to use when connecting to Loggly. Can be thought of as amount of 
 concurrency, so beware of hitting Loggly too much as you may be seen as DOS attack. Hence,
 default is only 10.
 
+*Note: `tags` and `meta` may contain functions. These functions will be evalutated once for each
+log event. The result value must be stringifiable otherwise it will be discarded.*
+
+------
+
 #### XMPP
 
-##### `log`
-
-Boolean whether to send `stdout`, default `false`
-
-##### `err`
-
-Boolean whether to send `stderr`, default `true`
+See defaults
 
 ##### `to`
 
@@ -217,6 +246,8 @@ long synchronous loop.
 ##### `prefix`
 
 This string will be prefixed to every message
+
+------
 
 ### Conceptual Overview
 
