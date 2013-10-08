@@ -1,5 +1,5 @@
 
-var printer = require("../printer");
+var helper = require("../helper");
 var _ = require("lodash");
 var fs = require("fs");
 var path = require("path");
@@ -9,8 +9,6 @@ var transport = null;
 var config = null;
 var queue = [];
 var queuing = false;
-var os = require("os");
-var hostname = os.hostname();
 var stats = { flushes: 0, last: null };
 var config = {};
 
@@ -22,7 +20,7 @@ exports.defaults = {
   to: [],
   subject: "node-logbook",
   machineName: true,
-  delay: 1000,
+  delay: 10*1000,
   log: false,
   err: true
 };
@@ -42,13 +40,13 @@ exports.configure = function(c) {
     return;
 
   if(typeof config.from !== 'string')
-    return printer.fatal('SMTP: from must be a string');
+    return helper.fatal('smtp: from must be a string');
   if(typeof config.subject !== 'string')
-    return printer.fatal('SMTP: subject must be a string');
+    return helper.fatal('smtp: subject must be a string');
   if(typeof config.to === 'string')
     config.to = [config.to];
   if(!config.to || !config.to.length)
-    return printer.fatal('SMTP: define at least 1 recipient ("to")');
+    return helper.fatal('smtp: define at least 1 recipient ("to")');
 
   var smtpOpts = {};
 
@@ -62,11 +60,11 @@ exports.configure = function(c) {
 
   // smtpOpts.debug = true;
   if(config.machineName)
-    config.subject += ": " + hostname;
+    config.subject += " (" + helper.hostname + ")";
 
   transport = nodemailer.createTransport("SMTP", smtpOpts);
 
-  printer.info('smtp enabled (' + config.username + ')');
+  helper.info('smtp enabled (' + config.username + ')');
 
   _.extend(exports.status, _.pick(config, 'enabled', 'log', 'err'));
 };
@@ -76,11 +74,14 @@ var flush = function() {
   stats.flushes++;
   stats.last = new Date().toString();
 
-  var msg = (config.machineName ? hostname+': ' : '') + '#'+queue.length+' messages: ';
-  msg += '\n=======';
-  msg += '\n'+queue.map(function(arr) {
-    return arr[0].toUpperCase() + ": " + arr[1];
-  }).join('\n');
+  var msgs = queue.length;
+  var msg = 'node-logbook has #'+msgs+' messages' + (config.machineName?' from ' + helper.hostname: '') + ':' +
+  '\n=======\n'+
+  queue.map(function(msg, i) {
+    return ["#"+(i+1), msg.time, msg.type, msg.text].join(': ');
+  }).join('\n\n')+
+  '\n=======\n'+
+  'hostinfo:\n'+ helper.hostinfo();
 
   queue = [];
 
@@ -91,13 +92,16 @@ var flush = function() {
     text: msg
   };
 
-  // printer.debug(email);
+  // helper.debug(email);
 
   // send mail with defined transport object
-  transport.sendMail(email, function(error, response){
-    if(error) printer.fatal('SMTP: send error: ' + error);
-    // printer.debug(error);
-    // printer.debug(response);
+  transport.sendMail(email, function(error, response) {
+    if(error)
+      helper.fatal('smtp: send error: ' + error);
+    else
+      helper.info('smtp: sent #' + msgs + ' messages');
+    // helper.debug(error);
+    // helper.debug(response);
   });
 
   queuing = false;
@@ -110,5 +114,5 @@ exports.send = function(type, buffer) {
     queuing = true;
   }
 
-  queue.push([type, printer.stripColors(buffer)]);
+  queue.push({type:type.toUpperCase(), text:helper.stripColors(buffer), time:helper.time()});
 };

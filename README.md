@@ -3,7 +3,7 @@ Logbook
 
 Yet another logger for Node.
 
-Nothing fancy - logs all data that passes through `process.stdout` and `process.stderr` (`console.log()` and `console.error()`).
+Nothing fancy - logs all data that passes through `process.stdout` (`console.log`) and `process.stderr` (`console.error`).
 
 ### Features
 
@@ -12,11 +12,12 @@ Nothing fancy - logs all data that passes through `process.stdout` and `process.
 * Intercepts `process.stdout` and `process.stderr` producing two log levels:
   * `LOG`
   * `ERR`
-* Optionally log to:
+* Log to:
   * Console
   * File
   * Loggly
   * XMPP (Google Talk)
+  * SMTP (Gmail)
   * [Make your own](https://github.com/jpillora/node-logbook#custom-log-handlers)
 
 ### Usage
@@ -27,7 +28,7 @@ npm install logbook
 
 ### Log to File
 
-Disable console and log `stdout` `stderr` to `log.txt` and `err.txt` with a time stamp:
+Disable console and log `stdout` `stderr` to `log.txt` and `err.txt` with timestamps:
 
 ``` javascript
 require('logbook').configure({
@@ -40,9 +41,9 @@ require('logbook').configure({
 });
 ```
 
-### Log to Loggly
+### Log to Loggly (Gen2)
 
-Disable console and send `stdout` `stderr` to [Loggly](https://app.loggly.com/pricing/) (200MB/day free):
+Disable console and send `stdout` `stderr` to [Loggly](http://www.loggly.com/plans-and-pricing/) (200MB/day free):
 
 ``` javascript
 require('logbook').configure({
@@ -76,6 +77,24 @@ require('logbook').configure({
 
 To prevent too much spam, only `stderr` is logged by default.
 This can changed with `xmpp.log: true`. 
+
+### Log to SMTP (Google Talk)
+
+``` javascript
+require('logbook').configure({
+  console: {
+    enabled: false
+  },
+  smtp: {
+    enabled: true,
+    username: '...@gmail.com',
+    password: '...',
+    to: ["john@smith.com", "jane@doe.com"]
+  }
+});
+```
+
+Again, only `stderr` is logged by default.
 
 ### Log to all the thingsss
 
@@ -180,13 +199,13 @@ Enable or disable error events
 
 #### File
 
-See defaults
+See [defaults](#default-configuration)
 
 ------
 
 #### Loggly
 
-See defaults
+See [defaults](#default-configuration)
 
 **Important: Uses Loggly Gen2**
 
@@ -200,6 +219,9 @@ Each log will be in the form
   tags: ["...", "...", "log|err"]
 }
 ```
+
+*Note: `tags` and `meta` may contain functions. These functions will be evalutated once for each
+log event. The result value must be stringifiable otherwise it will be discarded.*
 
 ##### `customerToken` (String)
 
@@ -221,14 +243,11 @@ The number of http agents to use when connecting to Loggly. Can be thought of as
 concurrency, so beware of hitting Loggly too much as you may be seen as DOS attack. Hence,
 default is only 10.
 
-*Note: `tags` and `meta` may contain functions. These functions will be evalutated once for each
-log event. The result value must be stringifiable otherwise it will be discarded.*
-
 ------
 
 #### XMPP
 
-See defaults
+See [defaults](#default-configuration)
 
 ##### `to`
 
@@ -239,13 +258,32 @@ a logbook Jabber account, then you can "subscribe" to it at will.
 
 ##### `delay`
 
-This is the delay (in milliseconds) before all acculated messages are sent out.
-This helps trying to send thousands of messages concurrently resulting from a
-long synchronous loop.  
+This is the delay (in milliseconds) before all acculated messages concatenated and sent.
+This helps to prevent performance loss.
 
 ##### `prefix`
 
 This string will be prefixed to every message
+
+------
+
+#### SMTP
+
+See [defaults](#default-configuration)
+
+All properties **not** in the defaults will be used to create the [SMTP options object](https://github.com/andris9/Nodemailer#setting-up-smtp) which will be passed into  `createTransport("SMTP", options)`.
+
+##### `username` `password`
+
+Shorthand for `auth: { user: username, pass: password }`. See [SMTP options object](https://github.com/andris9/Nodemailer#setting-up-smtp).
+
+##### `to` **required**
+
+An array of email addresses
+
+##### `delay`
+
+Same as XMPP
 
 ------
 

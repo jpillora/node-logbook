@@ -1,6 +1,6 @@
 
 
-var printer = require("../printer");
+var helper = require("../helper");
 var _ = require("lodash");
 var config = {};
 
@@ -23,7 +23,7 @@ exports.configure = function(c) {
   _.extend(config, c);
   _.extend(exports.status, _.pick(config, 'enabled', 'log', 'err'));
   if(config.enabled)
-    printer.info('console enabled');
+    helper.info('console enabled');
 };
 
 exports.send = function(type, buffer) {
@@ -33,9 +33,9 @@ exports.send = function(type, buffer) {
     strs.push(type === 'err' ? type.red : type.cyan);
 
   if(config.timestamps)
-    strs.push(printer.time().grey);
+    strs.push(helper.time().grey);
 
   strs.push(buffer.toString());
 
-  printer[type](strs.join(' '));
+  helper[type](strs.join(' '));
 };

@@ -46,4 +46,20 @@ exports.time = function() {
                                                            xpad(d.getMilliseconds()));
 };
 
+var os = require("os");
+exports.hostname = os.hostname();
+
+exports.hostinfo = function() {
+  var osdata = {time: exports.time()};
+  for(var fnName in os)
+    if(fnName !== 'getNetworkInterfaces' &&
+       typeof os[fnName] === 'function')
+      osdata[fnName] = os[fnName]();
+
+  var str = JSON.stringify(osdata, null, '- ');
+  str = str.replace(/[\{\}",]/g,'');
+  str = str.split('\n').filter(function(line) {return !/^[\s\-]*$/.test(line); }).join('\n');
+  return str;
+};
+
 

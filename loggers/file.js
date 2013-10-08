@@ -1,5 +1,5 @@
 
-var printer = require("../printer");
+var helper = require("../helper");
 var _ = require("lodash");
 var fs = require('fs');
 var path = require('path');
@@ -28,7 +28,7 @@ exports.configure = function(c) {
   if(!config.enabled)
     return;
 
-  printer.info('file enabled (log: '+config.log+', err: '+config.err + ')');
+  helper.info('file enabled (log: '+config.log+', err: '+config.err + ')');
 
   ['log','err'].forEach(function(type) {
     if(config[type])
@@ -50,9 +50,9 @@ exports.send = function(type, buffer) {
     strs.push(type);
 
   if(config.timestamps)
-    strs.push(printer.time());
+    strs.push(helper.time());
 
-  strs.push(printer.stripColors(buffer));
+  strs.push(helper.stripColors(buffer));
 
 
   files[type].write(strs.join(' '));

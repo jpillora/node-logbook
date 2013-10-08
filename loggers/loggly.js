@@ -1,12 +1,10 @@
 
-var printer = require("../printer");
+var helper = require("../helper");
 var _ = require("lodash");
 var util = require('util');
 var request = require('request');
 var queue = [];
 var config = {};
-var os = require("os");
-var hostname = os.hostname();
 var urlTemplate = 'https://logs-01.loggly.com/inputs/%s/tag/%s/';
 
 exports.defaults = {
@@ -35,13 +33,13 @@ exports.configure = function(c) {
   if(!config.enabled)
     return;
   if(!config.customerToken)
-    return printer.fatal("Loggly 'customerToken' not set");
+    return helper.fatal("Loggly 'customerToken' not set");
   if(config.tags && !(config.tags instanceof Array))
-    return printer.fatal("Loggly 'tags' must be an array");
+    return helper.fatal("Loggly 'tags' must be an array");
   if(config.meta && typeof config.meta !== "object")
-    return printer.fatal("Loggly 'meta' must be an object");
+    return helper.fatal("Loggly 'meta' must be an object");
 
-  printer.info('loggly enabled (token: ' + config.customerToken + ')');
+  helper.info('loggly enabled (token: ' + config.customerToken + ')');
 
   _.extend(exports.status, _.pick(config, 'enabled', 'log', 'err'));
 };
@@ -62,11 +60,11 @@ exports.send = function(type, buffer) {
   var msg = {
     date: Date.now(),
     type: type,
-    msg: printer.stripColors(buffer)
+    msg: helper.stripColors(buffer)
   };
 
   if(config.machineName)
-    msg.machineName = hostname;
+    msg.machineName = helper.hostname;
 
   if(config.meta)
     _.defaults(msg, config.meta);
@@ -92,14 +90,14 @@ exports.send = function(type, buffer) {
     body: msg
   }, function (err, res, body) {
     if(err)
-      printer.fatal('loggly http error: ' + err + "\n");
+      helper.fatal('loggly http error: ' + err + "\n");
     else if (res.statusCode !== 200)
-      printer.fatal('loggly error: ' + res.statusCode + ': ' + body + "\n");
+      helper.fatal('loggly error: ' + res.statusCode + ': ' + body + "\n");
     else
       exports.status.confirmed++;
 
-    // printer.log('confirmed:'+exports.status.confirmed+"("+id+")\n");
-    // printer.log(util.inspect(res, {colors:true, depth:0})+"\n");
+    // helper.log('confirmed:'+exports.status.confirmed+"("+id+")\n");
+    // helper.log(util.inspect(res, {colors:true, depth:0})+"\n");
   });
 };
 

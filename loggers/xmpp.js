@@ -1,5 +1,5 @@
 
-var printer = require("../printer");
+var helper = require("../helper");
 var _ = require("lodash");
 var fs = require("fs");
 var path = require("path");
@@ -22,8 +22,6 @@ var config = null;
 var queue = null;
 var queuing = false;
 var ready = false;
-var os = require("os");
-var hostname = os.hostname();
 var stats = { flushes: 0, last: null };
 var config = {};
 
@@ -55,9 +53,9 @@ exports.configure = function(c) {
   if(!config.enabled)
     return;
   if(!config.jid || !config.password)
-    return printer.fatal('XMPP missing jid or password');
+    return helper.fatal('XMPP missing jid or password');
 
-  printer.info('xmpp enabled (jid: ' + config.jid + ')');
+  helper.info('xmpp enabled (jid: ' + config.jid + ')');
 
   buddies = {};
   queue = [];
@@ -75,13 +73,13 @@ exports.configure = function(c) {
 
   client.on('chat', function(from, message) {
     if(/report/.test(message))
-      report(from);
+      client.send(from, helper.hostinfo());
     else
       client.send(from, message+'?');
   });
 
   client.on('error', function(err) {
-    printer.fatal('XMPP Error: ' + err.toString());
+    helper.fatal('XMPP Error: ' + err.toString());
   });
 
   client.on('buddy', function(jid, state, statusText) {
@@ -116,25 +114,11 @@ exports.configure = function(c) {
 
 var readyNow = function() {
   ready = true;
-  printer.info('xmpp online');
+  helper.info('xmpp online');
   client.setPresence('online', 'Online: '+new Date());
   setTimeout(function() {
     if(queue.length) flush();
   }, 2000);
-};
-
-var report = function(sender) {
-  var osdata = {};
-  for(var fnName in os)
-    if(fnName !== 'getNetworkInterfaces' &&
-       typeof os[fnName] === 'function')
-      osdata[fnName] = os[fnName]();
-
-  client.send(sender, JSON.stringify({
-    time: new Date().toString(),
-    stats: stats,
-    os: osdata
-  },null, 2));
 };
 
 var flush = function() {
@@ -142,7 +126,7 @@ var flush = function() {
   stats.flushes++;
   stats.last = new Date().toString();
 
-  var msg = (config.machineName ? hostname+': ' : '') +
+  var msg = (config.machineName ? helper.hostname+': ' : '') +
             (config.prefix ? config.prefix+': ' : '') +
             (queue.length >1 ? '#'+queue.length+' messages: ':'');
 
@@ -165,7 +149,7 @@ exports.send = function(type, buffer) {
     queuing = true;
   }
 
-  queue.push([type, printer.stripColors(buffer)]);
+  queue.push([type, helper.stripColors(buffer)]);
 };
 
 
