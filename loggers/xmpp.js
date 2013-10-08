@@ -55,7 +55,7 @@ exports.configure = function(c) {
   if(!config.jid || !config.password)
     return helper.fatal('XMPP missing jid or password');
 
-  helper.info('xmpp enabled (jid: ' + config.jid + ')');
+  helper.info('xmpp enabled (' + config.jid + ')');
 
   buddies = {};
   queue = [];
