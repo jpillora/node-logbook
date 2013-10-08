@@ -70,7 +70,7 @@ exports.send = function(type, buffer) {
     _.defaults(msg, config.meta);
 
   var tags = config.tags ? config.tags.slice() : [];
-  tags.push(type);
+  tags.push('logbook-'+type);
   tags = tags.map(function(v) {
     return evaluator(null, v);
   });
@@ -84,8 +84,7 @@ exports.send = function(type, buffer) {
 
   request.post({
     pool: { maxSockets: config.maxSockets },
-    // url: url,
-    url: 'http://localhost:4000',
+    url: url,
     headers: { 'Content-Type': 'application/json' },
     body: msg
   }, function (err, res, body) {

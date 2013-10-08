@@ -2,8 +2,12 @@
 require('../').configure({
   loggly: {
     enabled: true,
-    customerToken: "abcd1234-1234-40bd-bddf-5ff562eb1cda",
-    tags: ["loggly-perf"]
+    customerToken: "abcdefgh-85fe-41f7-9f09-5b018f68d691",
+    tags: ["loggly-perf"],
+    meta: {
+      foo: 42,
+      bar: function() { return Math.random() > 0.5 ? "heads" : "tails"; }
+    }
   }
 });
 

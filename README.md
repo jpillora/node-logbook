@@ -231,7 +231,7 @@ The token provided by loggly which identifies your account.
 
 The tags applied each log event. See [Tags](http://www.loggly.com/docs/tags/).
 
-The log type (`log`|`err`) will always be appended to the tags array.
+The log type (`logbook-log`|`logbook-err`) will always be appended to the tags array. *Tip: Since there are no longer input tokens, differentiate application logs with tags. Add a 'my-app' tag and you can search for all of it's errors with `tag:logbook-err AND tag:my-app`.*
 
 ##### `meta` (Object)
 
