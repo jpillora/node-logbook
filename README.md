@@ -17,7 +17,7 @@ Nothing fancy - logs all data that passes through `process.stdout` (`console.log
   * File
   * Loggly
   * XMPP (Google Talk)
-  * SMTP (Gmail)
+  * SMTP (Email)
   * [Make your own](https://github.com/jpillora/node-logbook#custom-log-handlers)
 
 ### Usage
@@ -78,7 +78,7 @@ require('logbook').configure({
 To prevent too much spam, only `stderr` is logged by default.
 This can changed with `xmpp.log: true`. 
 
-### Log to SMTP (Google Talk)
+### Log to SMTP (Email)
 
 ``` javascript
 require('logbook').configure({
@@ -114,6 +114,10 @@ require('logbook').configure({
   xmpp: {
     enabled: true,
     ...
+  },
+  smtp: {
+    enabled: true,
+    ...
   }
 });
 ```
@@ -145,9 +149,22 @@ With this default configuration, `logbook` will have no effect, console will fun
     "enabled": false,
     "customerToken": null,
     "maxSockets": 10,
+    "machineName": false,
     "tags": null,
     "meta": null,
     "log": true,
+    "err": true
+  },
+  "smtp": {
+    "enabled": false,
+    "username": null,
+    "password": null,
+    "from": "node-logbook",
+    "to": [],
+    "subject": "node-logbook",
+    "machineName": true,
+    "delay": 10000,
+    "log": false,
     "err": true
   },
   "xmpp": {
@@ -294,10 +311,10 @@ all calls to it, calls the original versions when `console.enabled true`.
 
 ### Todo
 
-* Make a CLI looking for a `logbook.json` file
-  * Runs like `logbook script.js` logs all `stdout` `stderr`
+* Make a CLI looking for a `logbook.json` file used as config
+  * Runs in place of `node`, though `logbook script.js` logs all `stdout` `stderr`
   * Auto restarts, logging restart events
-* Add some tests
+* Add tests
 
 <license()>
 #### MIT License
