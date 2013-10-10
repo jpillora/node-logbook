@@ -1,7 +1,7 @@
 Logbook
 ============
 
-Yet another logger for Node.
+A simple, unobtrusive logger for Node.
 
 Nothing fancy - logs all data that passes through `process.stdout` (`console.log`) and `process.stderr` (`console.error`).
 
@@ -20,10 +20,33 @@ Nothing fancy - logs all data that passes through `process.stdout` (`console.log
   * SMTP (Email)
   * [Make your own](https://github.com/jpillora/node-logbook#custom-log-handlers)
 
-### Usage
+### Quick Usage
 
+Install:
 ```
 npm install logbook
+```
+
+Then include in your entry file:
+``` js
+require('logbook').configure({
+  console: {
+    enabled: false
+  },
+  smtp: {
+    enabled: true,
+    username: '...@gmail.com',
+    password: '...',
+    to: ["john@smith.com", "jane@doe.com"]
+  }
+});
+```
+
+Send an email on crash:
+``` js
+process.on('uncaughtException', function(err) {
+  console.error('Oh noez, I've crashed!\n' + (err.stack || err));
+});
 ```
 
 ### Log to File
@@ -122,7 +145,9 @@ require('logbook').configure({
 });
 ```
 
-*See [examples](https://github.com/jpillora/node-logbook/tree/master/examples) directory for more*
+### More Examples
+
+*See the [examples](https://github.com/jpillora/node-logbook/tree/master/examples) directory for more*
 
 ### Default Configuration
 
@@ -275,8 +300,8 @@ a logbook Jabber account, then you can "subscribe" to it at will.
 
 ##### `delay`
 
-This is the delay (in milliseconds) before all acculated messages concatenated and sent.
-This helps to prevent performance loss.
+This is the delay (in milliseconds) before all acculated messages are concatenated and sent.
+This helps to prevent performance loss by batching synchronous messages.
 
 ##### `prefix`
 
@@ -288,7 +313,9 @@ This string will be prefixed to every message
 
 See [defaults](#default-configuration)
 
-All properties **not** in the defaults will be used to create the [SMTP options object](https://github.com/andris9/Nodemailer#setting-up-smtp) which will be passed into  `createTransport("SMTP", options)`.
+Uses [Nodemailer](https://github.com/andris9/Nodemailer)
+
+*Important:* All properties **not** in the defaults will be used to create the [SMTP options object](https://github.com/andris9/Nodemailer#setting-up-smtp) which will be passed into  `createTransport("SMTP", options)`.
 
 ##### `username` `password`
 
