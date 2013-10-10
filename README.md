@@ -45,7 +45,7 @@ require('logbook').configure({
 Send an email on crash:
 ``` js
 process.on('uncaughtException', function(err) {
-  console.error('Oh noez, I've crashed!\n' + (err.stack || err));
+  console.error('Oh noez, I\'ve crashed!!!!\n' + (err.stack || err));
 });
 ```
 
