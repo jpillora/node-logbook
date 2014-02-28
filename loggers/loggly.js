@@ -4,32 +4,23 @@ var _ = require("lodash");
 var util = require('util');
 var request = require('request');
 var queue = [];
-var config = {};
-var urlTemplate = 'https://logs-01.loggly.com/inputs/%s/tag/%s/';
 
-exports.defaults = {
-  enabled: false,
+var config = exports.config = {
   customerToken: null,
   maxSockets: 10,
   machineName: false,
   tags: null,
   meta: null,
-  log: true,
-  err: true
-};
-_.defaults(config, exports.defaults);
-
-exports.status = {
-  enabled: false,
   log: false,
-  err: false,
+  err: false
+};
+
+var stats = {
   sent: 0,
   confirmed: 0
 };
 
-exports.configure = function(c) {
-  _.extend(config, c);
-
+exports.configure = function() {
   if(!config.enabled)
     return;
   if(!config.customerToken)
@@ -38,10 +29,6 @@ exports.configure = function(c) {
     return helper.fatal("Loggly 'tags' must be an array");
   if(config.meta && typeof config.meta !== "object")
     return helper.fatal("Loggly 'meta' must be an object");
-
-  helper.info('loggly enabled (token: ' + config.customerToken + ')');
-
-  _.extend(exports.status, _.pick(config, 'enabled', 'log', 'err'));
 };
 
 //evalutate functions in json objects
@@ -75,13 +62,12 @@ exports.send = function(type, buffer) {
     return evaluator(null, v);
   });
 
-  var url = util.format(urlTemplate, config.customerToken, tags.join(','));
+  var url = util.format('https://logs-01.loggly.com/inputs/%s/tag/%s/', config.customerToken, tags.join(','));
 
   msg = JSON.stringify(msg, evaluator);
 
-  exports.status.sent++;
-  // var id = exports.status.sent;
-
+  stats.sent++;
+  // var id = stats.sent;
   request.post({
     pool: { maxSockets: config.maxSockets },
     url: url,
@@ -93,9 +79,8 @@ exports.send = function(type, buffer) {
     else if (res.statusCode !== 200)
       helper.fatal('loggly error: ' + res.statusCode + ': ' + body + "\n");
     else
-      exports.status.confirmed++;
-
-    // helper.log('confirmed:'+exports.status.confirmed+"("+id+")\n");
+      stats.confirmed++;
+    // helper.log('confirmed:'+stats.confirmed+"("+id+")\n");
     // helper.log(util.inspect(res, {colors:true, depth:0})+"\n");
   });
 };

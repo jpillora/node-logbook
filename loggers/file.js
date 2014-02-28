@@ -4,45 +4,31 @@ var _ = require("lodash");
 var fs = require('fs');
 var path = require('path');
 var files = {};
-var config = {};
 
-exports.defaults = {
-  enabled: false,
+var config = exports.config = {
   timestamps: true,
   typestamps: false,
-  log: "./log.txt",
-  err: "./err.txt"
-};
-
-_.defaults(config, exports.defaults);
-
-exports.status = {
-  enabled: false,
   log: false,
-  err: false
+  err: false,
+  logPath: "./log.txt",
+  errPath: "./err.txt"
 };
 
-exports.configure = function(c) {
-  _.extend(config, c);
-
-  if(!config.enabled)
-    return;
-
-  helper.info('file enabled (log: '+config.log+', err: '+config.err + ')');
-
+exports.configure = function() {
   ['log','err'].forEach(function(type) {
-    if(config[type])
-      files[type] = fs.createWriteStream(config[type], { flags: 'a' });
-    else
-      files[type] = null;
-
-    exports.status[type] = !!config[type];
+    if(!config[type])
+      return;
+    var path = config[type+"Path"];
+    if(!path)
+      return helper.fatal("file: cannot enable '%s' missing 'path'", type);
+    files[type] = fs.createWriteStream(path, { flags: 'a' });
   });
-  exports.status.enabled = config.enabled;
 };
 
 exports.send = function(type, buffer) {
-  if(!files[type]) return;
+
+  if(!files[type])
+    return;
 
   var strs = [];
 
@@ -53,7 +39,6 @@ exports.send = function(type, buffer) {
     strs.push(helper.time());
 
   strs.push(helper.stripColors(buffer));
-
 
   files[type].write(strs.join(' '));
 };

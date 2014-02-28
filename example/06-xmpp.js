@@ -1,7 +1,7 @@
+//logbook-xmpp plugin required
 //log to xmpp (Google Talk)
 require('../').configure({
   xmpp: {
-    enabled: true,
     jid: '...@gmail.com',
     password: '...',
 
@@ -11,11 +11,8 @@ require('../').configure({
 
     // default is "*" (whitelist of 'jid's)
     // to: "*",
-
-    // default is
-    // err: true,
-    // log: false 
-    log: true
+    log: true,
+    err: true
   }
 });
 

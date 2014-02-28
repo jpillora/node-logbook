@@ -2,28 +2,12 @@
 
 var helper = require("../helper");
 var _ = require("lodash");
-var config = {};
 
-exports.defaults = {
-  enabled: true,
+var config = exports.config = {
   timestamps: false,
   typestamps: false,
   log: true,
   err: true
-};
-
-exports.status = {
-  enabled: true,
-  log: true,
-  err: true
-};
-
-_.defaults(config, exports.defaults);
-exports.configure = function(c) {
-  _.extend(config, c);
-  _.extend(exports.status, _.pick(config, 'enabled', 'log', 'err'));
-  if(config.enabled)
-    helper.info('console enabled');
 };
 
 exports.send = function(type, buffer) {

@@ -10,10 +10,8 @@ var config = null;
 var queue = [];
 var queuing = false;
 var stats = { flushes: 0, last: null };
-var config = {};
 
-exports.defaults = {
-  enabled: false,
+var config = exports.config = {
   username: null,
   password: null,
   from: "node-logbook",
@@ -22,19 +20,10 @@ exports.defaults = {
   machineName: true,
   delay: 10*1000,
   log: false,
-  err: true
-};
-
-_.defaults(config, exports.defaults);
-
-exports.status = {
-  enabled: false,
-  log: false,
   err: false
 };
 
 exports.configure = function(c) {
-  _.extend(config, c);
 
   if(!config.enabled)
     return;
@@ -63,10 +52,6 @@ exports.configure = function(c) {
     config.subject += " (" + helper.hostname + ")";
 
   transport = nodemailer.createTransport("SMTP", smtpOpts);
-
-  helper.info('smtp enabled (' + config.username + ')');
-
-  _.extend(exports.status, _.pick(config, 'enabled', 'log', 'err'));
 };
 
 var flush = function() {

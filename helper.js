@@ -1,6 +1,6 @@
 
-
 var util = require('util');
+exports._ = require('lodash');
 
 //original functions
 var $out = process.stdout.write,
@@ -14,16 +14,16 @@ exports.err = function(str) {
   $err.call(process.stderr, new Buffer(str));
 };
 
-exports.info = function(str) {
-  exports.log(("logbook >> "+str+"\n").grey);
+exports.info = function() {
+  exports.log(("logbook >> "+util.format.apply(util, arguments)+"\n").grey);
 };
 
 exports.debug = function(obj) {
-  exports.err(("logbook DEBUG >> "+JSON.stringify(obj, null, 2)+"\n").red);
+  exports.err(("logbook DEBUG >> "+util.inspect(obj)+"\n").blue);
 };
 
-exports.fatal = function(str) {
-  exports.err(("logbook ERROR >> "+str+"\n").red);
+exports.fatal = function() {
+  exports.err(("logbook ERROR >> "+util.format.apply(util, arguments)+"\n").red);
 };
 
 exports.stripColors = function(buffer) {

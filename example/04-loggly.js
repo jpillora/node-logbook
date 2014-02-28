@@ -1,7 +1,8 @@
 //loggly example !
 require('../').configure({
   loggly: {
-    enabled: true,
+    log: true,
+    err: true,
     customerToken: "abcdefgh-85fe-41f7-9f09-5b018f68d691",
     tags: ["my-app"],
     meta: {

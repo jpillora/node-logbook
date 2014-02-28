@@ -1,11 +1,12 @@
 //log to file
 require('../').configure({
+  console: {
+    log: false,
+    err: false
+  },
   file: {
-    enabled: true
-    // Note, defaults are
-    // log: "./log.txt",
-    // err: "./err.txt",
-    // timestamps: true
+    log: true,
+    err: true
   }
 });
 

@@ -16,15 +16,17 @@ Nothing fancy - logs all data that passes through `process.stdout` (`console.log
   * Console
   * File
   * Loggly
-  * XMPP (Google Talk)
   * SMTP (Email)
   * [Make your own](https://github.com/jpillora/node-logbook#custom-log-handlers)
+* Use [Logbook Plugins](https://github.com/jpillora/node-logbook#plugins) and log to:
+  * [XMPP](https://github.com/jpillora/node-logbook-xmpp) (Google Talk)
+
 
 ### Quick Usage
 
 Install:
 ```
-npm install logbook
+npm install --save logbook
 ```
 
 Then include in your entry file:
@@ -66,50 +68,30 @@ require('logbook').configure({
 
 ### Log to Loggly (Gen2)
 
-Disable console and send `stdout` `stderr` to [Loggly](http://www.loggly.com/plans-and-pricing/) (200MB/day free):
+Disable console and send `stdout` and `stderr` to [Loggly](http://www.loggly.com/plans-and-pricing/) (200MB/day free):
 
 ``` javascript
 require('logbook').configure({
   console: {
-    enabled: false
+    log: false,
+    err: false
   },
   loggly: {
-    enabled: true,
+    log: true,
+    err: true,
     customerToken: "abcd1234-1234-40bd-bddf-5ff562eb1cda",
     tags: ["my-app"]
   }
 });
 ```
 
-### Log to XMPP a.k.a "Jabber" (Google Talk)
-
-Disable console and send `stderr` to everyone in your contact list:
-
-``` javascript
-require('logbook').configure({
-  console: {
-    enabled: false
-  },
-  xmpp: {
-    enabled: true,
-    jid: '...@gmail.com',
-    password: '...',
-  }
-});
-```
-
-To prevent too much spam, only `stderr` is logged by default.
-This can changed with `xmpp.log: true`. 
-
 ### Log to SMTP (Email)
 
 ``` javascript
 require('logbook').configure({
-  console: {
-    enabled: false
-  },
   smtp: {
-    enabled: true,
+    log: true,
+    err: true,
     username: '...@gmail.com',
     password: '...',
     to: ["john@smith.com", "jane@doe.com"]
@@ -124,22 +106,22 @@ Again, only `stderr` is logged by default.
 ``` javascript
 require('logbook').configure({
   console: {
-    enabled: true
+    log: true,
+    err: true,
   },
   file: {
-    enabled: true,
+    log: true,
+    err: true,
     ...
   },
   loggly: {
-    enabled: true,
-    ...
-  },
-  xmpp: {
-    enabled: true,
+    log: true,
+    err: true,
     ...
   },
   smtp: {
-    enabled: true,
+    log: true,
+    err: true,
     ...
   }
 });
@@ -157,31 +139,29 @@ With this default configuration, `logbook` will have no effect, console will fun
 ```
 {
   "console": {
-    "enabled": true,
     "timestamps": false,
     "typestamps": false,
     "log": true,
     "err": true
   },
   "file": {
-    "enabled": false,
     "timestamps": true,
     "typestamps": false,
-    "log": "./log.txt",
-    "err": "./err.txt"
+    "log": false,
+    "err": false,
+    "logPath": "./log.txt",
+    "errPath": "./err.txt"
   },
   "loggly": {
-    "enabled": false,
     "customerToken": null,
     "maxSockets": 10,
     "machineName": false,
     "tags": null,
     "meta": null,
-    "log": true,
-    "err": true
+    "log": false,
+    "err": false
   },
   "smtp": {
-    "enabled": false,
     "username": null,
     "password": null,
     "from": "node-logbook",
@@ -190,10 +170,9 @@ With this default configuration, `logbook` will have no effect, console will fun
     "machineName": true,
     "delay": 10000,
     "log": false,
-    "err": true
+    "err": false
   },
   "xmpp": {
-    "enabled": false,
     "jid": null,
     "password": null,
     "host": "talk.google.com",
@@ -203,12 +182,51 @@ With this default configuration, `logbook` will have no effect, console will fun
     "machineName": false,
     "delay": 100,
     "log": false,
-    "err": true
+    "err": false
   }
 }
 
 ```
 </end>
+
+### Plugins
+
+Logbook plugins are just node modules that `export` a `send` method:
+
+``` js
+exports.send = function(type, buffer) {
+  type === 'log' || type === 'err';   //true
+  buffer instanceof Buffer;           //true
+};
+```
+
+`logbook`'s parent folder (usually `node_modules`), is searched for plugins (other folders) with
+the name `logbook-`*`my-plugin-name`*. For example, to install both `logbook` and `logbook-my-plugin-name`,
+we can do `npm install --save logbook-my-plugin-name`, which will now allow `logbook` to see `logbook-my-plugin-name`
+as it will reside along side it in `node_modules`.
+
+**Warning** Using `console.``log`/`error` in your plugin will cause an infinite loop. Instead use:
+``` js
+var helper = require("../logbook").helper;
+helper.info("my logbook console message");
+```
+
+You can define a default configuration with
+``` js
+exports.config = {
+  my: "defaults"
+};
+```
+
+You can also create a `configure` function (to verify configuration or init modules):
+``` js
+exports.configure = function() {
+  // check exports.config
+};
+```
+This function is called when the user calls `require("logbook").configure({  })`.
+
+See the [XMPP](https://github.com/jpillora/node-logbook-xmpp) plugin for reference.
 
 ### Custom Log Handlers
 
@@ -285,27 +303,6 @@ The number of http agents to use when connecting to Loggly. Can be thought of as
 concurrency, so beware of hitting Loggly too much as you may be seen as DOS attack. Hence,
 default is only 10.
 
-------
-
-#### XMPP
-
-See [defaults](#default-configuration)
-
-##### `to`
-
-An array of `jid` Jabber IDs (Google Accounts in the case of Google Talk).
-By default it's the string "*", which means everyone in the given
-accounts contact list. Useful if you create
-a logbook Jabber account, then you can "subscribe" to it at will.
-
-##### `delay`
-
-This is the delay (in milliseconds) before all acculated messages are concatenated and sent.
-This helps to prevent performance loss by batching synchronous messages.
-
-##### `prefix`
-
-This string will be prefixed to every message
 
 ------
 
@@ -327,14 +324,15 @@ An array of email addresses
 
 ##### `delay`
 
-Same as XMPP
+This is the delay (in milliseconds) before all acculated messages are concatenated and sent.
+This helps to prevent performance loss by batching messages.
 
 ------
 
 ### Conceptual Overview
 
-This module simply assigns a new functions to `process.stdout|err.write`. Captures
-all calls to it, calls the original versions when `console.enabled true`.
+This module simply assigns a new functions to `process.stdout|err.write` to
+intercept all `console.log()`s and `console.error()`s.
 
 ### Todo
 
@@ -346,7 +344,7 @@ all calls to it, calls the original versions when `console.enabled true`.
 <license()>
 #### MIT License
 
-Copyright &copy; 2013 Jaime Pillora &lt;dev@jpillora.com&gt;
+Copyright &copy; 2014 Jaime Pillora &lt;dev@jpillora.com&gt;
 
 Permission is hereby granted, free of charge, to any person obtaining
 a copy of this software and associated documentation files (the
