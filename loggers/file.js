@@ -1,8 +1,6 @@
 
 var helper = require("../helper");
-var _ = require("lodash");
 var fs = require('fs');
-var path = require('path');
 var files = {};
 
 var config = exports.config = {
@@ -32,7 +30,7 @@ exports.send = function(type, buffer) {
 
   var strs = [];
 
-  if(config.typestamps || config.log === config.err)
+  if(config.typestamps || config.logPath === config.errPath)
     strs.push(type);
 
   if(config.timestamps)
